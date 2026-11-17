@@ -9,3 +9,5 @@ ResearchIQ/data/*/*
 !ResearchIQ/data/*/.gitkeep
 *.pdf
 *.sqlite
+# Generated presentation decks
+*.pptx
