@@ -4,7 +4,7 @@ ResearchIQ ingests a collection of open-access research papers on one topic and 
 with **paper / page / figure citations**. It reads text, tables, figures and charts, compares papers, says
 when the evidence is missing, and separates what the authors report from AI interpretation.
 
-Topic of the current collection: **Retrieval-Augmented Generation (RAG)** â€” 8 papers. Nothing in the code is
+Topic of the current collection: **Retrieval-Augmented Generation (RAG)** " 8 papers. Nothing in the code is
 tied to this topic; any 8â€“10 papers on one subject work.
 
 ---
