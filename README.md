@@ -272,18 +272,18 @@ Spot checks with the real models:
 ## Project structure
 ```
 ResearchIQ/
-â”œâ”€â”€ app.py                  Streamlit entry point (composition only)
-â”œâ”€â”€ config.py               settings from .env
-â”œâ”€â”€ requirements.txt  .env.example
-â”œâ”€â”€ ingestion/              Pipeline A: validation, parsing, normalization, extraction, chunking, embedding, indexing, batch CLI
-â”œâ”€â”€ retrieval/              Pipeline B retrieval: guard, refine, dense, BM25, fusion, rerank, evidence expansion
-â”œâ”€â”€ generation/             LLM/VLM client, prompts, answer generation, visual QA, comparison, assistant
-â”œâ”€â”€ guardrails/             input validation, injection detection, evidence, citation and output validation
-â”œâ”€â”€ database/               SQLite metadata store, Qdrant store
-â”œâ”€â”€ ui/                     Streamlit tabs and shared components
-â”œâ”€â”€ evaluation/             security test suite (evaluation metrics to come)
-â”œâ”€â”€ docs/                   presentation builder
-â”œâ”€â”€ tests/                  pytest suite
+ app.py                  Streamlit entry point (composition only)
+ config.py               settings from .env
+requirements.txt  .env.example
+ingestion/              Pipeline A: validation, parsing, normalization, extraction, chunking, embedding, indexing, batch CLI
+retrieval/              Pipeline B retrieval: guard, refine, dense, BM25, fusion, rerank, evidence expansion
+generation/             LLM/VLM client, prompts, answer generation, visual QA, comparison, assistant
+guardrails/             input validation, injection detection, evidence, citation and output validation
+database/               SQLite metadata store, Qdrant store
+ui/                     Streamlit tabs and shared components
+evaluation/             security test suite (evaluation metrics to come)
+docs/                   presentation builder
+tests/                  pytest suite
 â””â”€â”€ data/                   runtime data (git-ignored)
 ```
 
