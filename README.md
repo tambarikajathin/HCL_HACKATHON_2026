@@ -59,7 +59,7 @@ flowchart LR
   A8 -. read .-> B3
 ```
 
-### Pipeline A â€” ingestion
+### Pipeline A ” ingestion
 Entry points: the **Paper Management** tab, or `python -m ingestion.batch`.
 
 | Step | Module | What it does |
@@ -74,7 +74,7 @@ Entry points: the **Paper Management** tab, or `python -m ingestion.batch`.
 | Embed | `ingestion/embedding.py` | Batched, cached by content hash; the paper title and section are prefixed to each chunk |
 | Index | `database/qdrant_store.py`, `database/metadata_store.py` | Vectors + filterable payload in Qdrant; papers, elements, chunks and links in SQLite |
 
-### Pipeline B â€” query to answer
+### Pipeline B ” query to answer
 Entry points: **Research Chat** (`assistant.ask`) and **Paper Comparison** (`compare_papers`, one grounded query per aspect).
 
 | Step | Module | What it does |
