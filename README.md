@@ -1,4 +1,4 @@
-﻿# ResearchIQ — Multimodal, Evidence-Grounded Research Assistant
+# ResearchIQ — Multimodal, Evidence-Grounded Research Assistant
 
 *HCL Hackathon 2026 — Campus Placement Hackathon.* The application lives in [`ResearchIQ/`](ResearchIQ);
 all commands below run from that folder.
