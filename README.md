@@ -1,4 +1,4 @@
-﻿# ResearchIQ â€” Multimodal, Evidence-Grounded Research Assistant
+﻿# ResearchIQ Multimodal, Evidence-Grounded Research Assistant
 
 ResearchIQ ingests a collection of open-access research papers on one topic and answers questions about them
 with **paper / page / figure citations**. It reads text, tables, figures and charts, compares papers, says
