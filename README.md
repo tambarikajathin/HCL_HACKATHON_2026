@@ -1,11 +1,14 @@
-﻿# ResearchIQ â€” Multimodal, Evidence-Grounded Research Assistant
+﻿# ResearchIQ — Multimodal, Evidence-Grounded Research Assistant
+
+*HCL Hackathon 2026 — Campus Placement Hackathon.* The application lives in [`ResearchIQ/`](ResearchIQ);
+all commands below run from that folder.
 
 ResearchIQ ingests a collection of open-access research papers on one topic and answers questions about them
 with **paper / page / figure citations**. It reads text, tables, figures and charts, compares papers, says
 when the evidence is missing, and separates what the authors report from AI interpretation.
 
-Topic of the current collection: **Retrieval-Augmented Generation (RAG)** â€” 8 papers. Nothing in the code is
-tied to this topic; any 8â€“10 papers on one subject work.
+Topic of the current collection: **Retrieval-Augmented Generation (RAG)** — 8 papers. Nothing in the code is
+tied to this topic; any 8–10 papers on one subject work.
 
 ---
 
@@ -44,14 +47,14 @@ Pipeline A writes; Pipeline B reads.
 
 ```mermaid
 flowchart LR
-  subgraph A[Pipeline A â€” Offline ingestion]
+  subgraph A[Pipeline A — Offline ingestion]
     A1[Upload validator] --> A2[Parse<br/>Docling / PyMuPDF / OCR] --> A3[Normalize<br/>one JSON schema]
-    A3 --> A4[Text Â· Tables Â· Figures]
+    A3 --> A4[Text · Tables · Figures]
     A4 --> A5[Vision model<br/>Qwen2.5-VL, cached] --> A6[Parent/child chunking]
     A6 --> A7[Embeddings<br/>text-embedding-3-small, cached] --> A8[(Qdrant + SQLite)]
   end
-  subgraph B[Pipeline B â€” Online query]
-    B1[Input guard] --> B2[Query refiner<br/>intent Â· rewrite Â· scope] --> B3[Dense + BM25 â†’ RRF]
+  subgraph B[Pipeline B — Online query]
+    B1[Input guard] --> B2[Query refiner<br/>intent · rewrite · scope] --> B3[Dense + BM25 → RRF]
     B3 --> B4[Cross-encoder rerank] --> B5[Evidence expansion] --> B6{Enough evidence?}
     B6 -- no --> B7[Abstain: what is missing]
     B6 -- yes --> B8[Generate claims<br/>gpt-4o-mini] --> B9[Validate citations<br/>+ claim support] --> B10[Answer + sources]
@@ -59,12 +62,12 @@ flowchart LR
   A8 -. read .-> B3
 ```
 
-### Pipeline A â€” ingestion
+### Pipeline A — ingestion
 Entry points: the **Paper Management** tab, or `python -m ingestion.batch`.
 
 | Step | Module | What it does |
 |---|---|---|
-| Validate & register | `ingestion/upload_validator.py` | Checks extension, `%PDF-` signature, size, pages, encryption, `/JavaScript` `/Launch` markers; SHA-256 dedupe; assigns `P001â€¦`; saves to `data/papers/` |
+| Validate & register | `ingestion/upload_validator.py` | Checks extension, `%PDF-` signature, size, pages, encryption, `/JavaScript` `/Launch` markers; SHA-256 dedupe; assigns `P001…`; saves to `data/papers/` |
 | Orchestrate | `ingestion/indexer.py` | Runs every step below; clears any old index for the paper first (idempotent) |
 | Parse | `ingestion/pdf_parser.py`, `pymupdf_utils.py` | Docling for structure; each page comes from exactly one parser (Docling, PyMuPDF fallback, or OCR) so elements are never duplicated |
 | Normalize | `ingestion/output_normalizer.py` | Common schema: title, abstract, heading, paragraph, equation, table, figure, chart; section tracking; caption pairing; title/authors/year/identifier |
@@ -74,22 +77,22 @@ Entry points: the **Paper Management** tab, or `python -m ingestion.batch`.
 | Embed | `ingestion/embedding.py` | Batched, cached by content hash; the paper title and section are prefixed to each chunk |
 | Index | `database/qdrant_store.py`, `database/metadata_store.py` | Vectors + filterable payload in Qdrant; papers, elements, chunks and links in SQLite |
 
-### Pipeline B â€” query to answer
+### Pipeline B — query to answer
 Entry points: **Research Chat** (`assistant.ask`) and **Paper Comparison** (`compare_papers`, one grounded query per aspect).
 
 | Step | Module | What it does |
 |---|---|---|
-| Input guard | `retrieval/query_guard.py`, `guardrails/input_validator.py`, `guardrails/injection_detector.py` | Validation, rate limit, prompt-injection check â†’ `blocked` |
-| Refine | `retrieval/query_refiner.py` (+ rule fallback `query_classifier.py`) | One LLM call: intent, refined query, keywords, â‰¤3 sub-queries, content types, in-scope flag. Never answers |
+| Input guard | `retrieval/query_guard.py`, `guardrails/input_validator.py`, `guardrails/injection_detector.py` | Validation, rate limit, prompt-injection check → `blocked` |
+| Refine | `retrieval/query_refiner.py` (+ rule fallback `query_classifier.py`) | One LLM call: intent, refined query, keywords, ≤3 sub-queries, content types, in-scope flag. Never answers |
 | Hybrid search | `retrieval/hybrid_search.py`, `vector_search.py`, `keyword_search.py` | Dense + BM25 in parallel for the original, refined and (complex questions only) sub-queries; extra typed passes for tables/figures |
 | Fuse | `retrieval/fusion.py` | Reciprocal Rank Fusion, dedupe by id, keeps each list rank and method |
 | Rerank | `retrieval/reranker.py` | Cross-encoder against the **original** question; comparisons keep at least one chunk per selected paper |
 | Expand | `retrieval/evidence_expander.py` | Parent section only when needed; linked tables/figures; strips instruction-like text from evidence |
-| Sufficiency | `guardrails/evidence_validator.py` | Relevance, term coverage, per-paper coverage, requested Figure/Table present, numbers present â†’ `sufficient / partial / insufficient` |
+| Sufficiency | `guardrails/evidence_validator.py` | Relevance, term coverage, per-paper coverage, requested Figure/Table present, numbers present → `sufficient / partial / insufficient` |
 | Visual QA | `generation/visual_qa.py` | Visual questions only: the original figure image is sent to the vision model |
 | Generate | `generation/answer_generator.py`, `prompt_templates.py` | Structured JSON: answer, claims with `source_ids` and `kind`, limitations |
 | Validate | `guardrails/output_validator.py`, `citation_validator.py` | Ids exist; paper/page/figure references exist; numbers appear in cited text; wording overlap; LLM verifier; one retry with feedback, then partial or abstain |
-| Orchestrate | `generation/assistant.py` | Returns status `answered Â· partial Â· abstained Â· blocked Â· error`, citations, evidence and per-stage timings |
+| Orchestrate | `generation/assistant.py` | Returns status `answered · partial · abstained · blocked · error`, citations, evidence and per-stage timings |
 
 ## Quick start
 
@@ -118,8 +121,8 @@ Ingestion and the app both open the embedded Qdrant store, so **stop the app bef
 
 ## Configuration
 
-All settings are read from `ResearchIQ/.env` (`python-dotenv`); defaults live in `config.py`.
-`.env` is git-ignored â€” never commit it. Restart the app after changes.
+All settings are read from `ResearchIQ/.env` (`python-dotenv`); defaults live in `ResearchIQ/config.py`.
+`.env` is git-ignored — never commit it. Restart the app after changes.
 
 ### API keys
 | Variable | Required | Used for |
@@ -155,12 +158,12 @@ and answers return the retrieved evidence with a clear error message.
 | `OCR_MIN_CHARS_PER_PAGE` | 200 | Pages with less text are treated as scanned |
 | `MIN_FIGURE_PX` | 120 | Uncaptioned images smaller than this are dropped |
 
-**On similarity thresholds:** dense search has no cosine cut-off â€” it always returns the top-k, and BM25 drops
+**On similarity thresholds:** dense search has no cosine cut-off — it always returns the top-k, and BM25 drops
 zero-score chunks. The relevance threshold is applied to the **reranker probability** (`EVIDENCE_MIN_RELEVANCE`),
 because cosine scores from `text-embedding-3-small` sit in a narrow band and separate relevant from irrelevant
 poorly, while the cross-encoder separates them clearly.
 
-### Storage layout (`data/`, git-ignored)
+### Storage layout (`ResearchIQ/data/`, git-ignored)
 ```
 data/papers/       original PDFs              data/normalized/  Pxxx.json normalized documents
 data/figures/Pxxx/ figure PNG + description   data/chunks/      Pxxx.json chunks
@@ -179,22 +182,22 @@ data/db/           metadata.sqlite, qdrant/
 
 Example questions: *"What accuracy improvement does TC-RAG report?"*, *"What does Figure 2 of the Transform
 Retrieval paper show?"*, *"Compare the evaluation metrics used by TC-RAG and the Best Practices paper."*,
-*"What GPU was used in the Best Practices paper?"* (expected: abstains â€” not reported).
+*"What GPU was used in the Best Practices paper?"* (expected: abstains — not reported).
 
 ## Guardrails and security
 
 **Direct injection (in the question)**
 1. Unicode normalization; zero-width and control characters removed; empty, oversized and garbage input rejected; rate limit.
 2. Rule-based detection of instructions aimed at the assistant ("ignore previous instructions", "reveal your system prompt",
-   "print the API keys", "you are now DAN", fake `<system>` tags, â€¦).
+   "print the API keys", "you are now DAN", fake `<system>` tags, …).
 3. Questions *about* injection research are allowed: research context words plus no leading command.
 4. Llama Prompt Guard 2 (22M) as a second, model-based check (when enabled).
 5. The query refiner marks unrelated requests out of scope.
 
-**Indirect injection (inside PDFs)** â€” all PDF content is data, never instructions:
+**Indirect injection (inside PDFs)** — all PDF content is data, never instructions:
 1. Instruction-like sentences in retrieved text, captions and parent sections are replaced with
    `[instruction-like text removed]` before the LLM or the validators see them; the evidence is flagged and logged.
-2. Evidence is wrapped in `<evidence id=â€¦>` blocks, closing tags are escaped, flagged blocks carry a warning, and every
+2. Evidence is wrapped in `<evidence id=…>` blocks, closing tags are escaped, flagged blocks carry a warning, and every
    system prompt says not to follow instructions found in evidence or images.
 3. Output checks remove claims whose ids, numbers or wording are not supported by the cited text.
 4. Final answers are redacted for API keys, environment-variable names, local paths and system-prompt text.
@@ -209,8 +212,8 @@ rejected, filenames sanitized (no path traversal), user-facing errors never cont
 ## Testing and evaluation
 
 ```powershell
-pytest -q tests                                  # unit, integration, end-to-end and UI tests
-python -m evaluation.security_tests              # writes evaluation/results/security_results.json
+pytest -q tests                                      # unit, integration, end-to-end and UI tests
+python -m evaluation.security_tests                  # writes evaluation/results/security_results.json
 python -m evaluation.security_tests --prompt-guard   # also tests Prompt Guard 2 (needs gated access)
 ```
 
@@ -228,20 +231,20 @@ Measured on the 8 RAG papers, CPU-only laptop.
 | Item | Result |
 |---|---|
 | Papers indexed | 8 (677 searchable chunks, 38 tables, 30 figures) |
-| Ingestion time | 27â€“216 s per paper (first run); re-processing reuses cached figure descriptions and embeddings |
+| Ingestion time | 27–216 s per paper (first run); re-processing reuses cached figure descriptions and embeddings |
 | Test suite | 65 / 65 pass |
-| Security suite | 45 / 45 pass, 1 skipped (Prompt Guard 2 â€” gated access pending) |
-| Answer latency | 15â€“45 s per question; the cross-encoder reranker is the largest share (12â€“29 s) |
+| Security suite | 45 / 45 pass, 1 skipped (Prompt Guard 2 — gated access pending) |
+| Answer latency | 15–45 s per question; the cross-encoder reranker is the largest share (12–29 s) |
 
 Spot checks with the real models:
 
 | Question | Outcome |
 |---|---|
-| TC-RAG accuracy gain | "over 7.20%" plus EM and BLEU-4 ranges, cited to the abstract and p.7â€“8 |
+| TC-RAG accuracy gain | "over 7.20%" plus EM and BLEU-4 ranges, cited to the abstract and p.7–8 |
 | Figure 2 of Transform Retrieval | Vision model read the original figure; cited P004 p.3 Figure 2; claims verified |
 | TC-RAG vs Best Practices evaluation | Cited both papers; stated which metrics were missing |
 | GPU used in Best Practices | Abstained (best relevance 0.05 < 0.10) and listed the sources checked |
-| "Ignore all previous instructionsâ€¦" | Blocked before retrieval |
+| "Ignore all previous instructions…" | Blocked before retrieval |
 
 ## Design decisions
 - **Direct Python orchestration, no LangChain/LangGraph**: every stage has typed inputs/outputs and is unit-testable;
@@ -271,20 +274,23 @@ Spot checks with the real models:
 
 ## Project structure
 ```
-ResearchIQ/
-â”œâ”€â”€ app.py                  Streamlit entry point (composition only)
-â”œâ”€â”€ config.py               settings from .env
-â”œâ”€â”€ requirements.txt  .env.example
-â”œâ”€â”€ ingestion/              Pipeline A: validation, parsing, normalization, extraction, chunking, embedding, indexing, batch CLI
-â”œâ”€â”€ retrieval/              Pipeline B retrieval: guard, refine, dense, BM25, fusion, rerank, evidence expansion
-â”œâ”€â”€ generation/             LLM/VLM client, prompts, answer generation, visual QA, comparison, assistant
-â”œâ”€â”€ guardrails/             input validation, injection detection, evidence, citation and output validation
-â”œâ”€â”€ database/               SQLite metadata store, Qdrant store
-â”œâ”€â”€ ui/                     Streamlit tabs and shared components
-â”œâ”€â”€ evaluation/             security test suite (evaluation metrics to come)
-â”œâ”€â”€ docs/                   presentation builder
-â”œâ”€â”€ tests/                  pytest suite
-â””â”€â”€ data/                   runtime data (git-ignored)
+HCL_HACKATHON_2026/
+├── README.md               this file
+└── ResearchIQ/
+    ├── app.py              Streamlit entry point (composition only)
+    ├── config.py           settings from .env
+    ├── requirements.txt  .env.example
+    ├── ingestion/          Pipeline A: validation, parsing, normalization, extraction, chunking, embedding, indexing, batch CLI
+    ├── retrieval/          Pipeline B retrieval: guard, refine, dense, BM25, fusion, rerank, evidence expansion
+    ├── generation/         LLM/VLM client, prompts, answer generation, visual QA, comparison, assistant
+    ├── guardrails/         input validation, injection detection, evidence, citation and output validation
+    ├── database/           SQLite metadata store, Qdrant store
+    ├── ui/                 Streamlit tabs and shared components
+    ├── evaluation/         security test suite (evaluation metrics to come)
+    ├── docs/               presentation builder (python docs/build_presentation.py; generated .pptx is git-ignored)
+    ├── tests/              pytest suite
+    └── data/               runtime data (git-ignored)
 ```
 
-Only open-access papers should be ingested. PDFs, extracted data and `.env` are excluded from git by `.gitignore`.
+Only open-access papers should be ingested. PDFs, extracted data, `.env` and generated `.pptx` decks are excluded
+from git by `.gitignore`.
